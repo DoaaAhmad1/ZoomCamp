@@ -1,0 +1,72 @@
+CREATE TABLE green_tripdata (
+    VendorID INT,
+    lpep_pickup_datetime TIMESTAMP,
+    lpep_dropoff_datetime TIMESTAMP,
+    store_and_fwd_flag VARCHAR(1),
+    RatecodeID INT,
+    PULocationID INT,
+    DOLocationID INT,
+    passenger_count INT,
+    trip_distance DECIMAL,
+    fare_amount DECIMAL,
+    extra DECIMAL,
+    mta_tax DECIMAL,
+    tip_amount DECIMAL,
+    tolls_amount DECIMAL,
+    ehail_fee DECIMAL,
+    improvement_surcharge DECIMAL,
+    total_amount DECIMAL,
+    payment_type INT,
+    trip_type INT,
+    congestion_surcharge DECIMAL
+);
+CREATE TABLE taxi_zone_lookup (
+    LocationID INT,
+    Borough VARCHAR(50),
+    Zone VARCHAR(50),
+    service_zone VARCHAR(50)
+);
+
+COPY taxi_zone_lookup FROM '/taxi+_zone_lookup.csv' DELIMITER ',' CSV HEADER;
+COPY green_tripdata FROM '/green_tripdata_2019-09.csv' DELIMITER ',' CSV HEADER;
+#Q3
+select count(*) from green_tripdata t
+WHERE CAST(t.lpep_pickup_datetime AS date) = '2019-09-18' and CAST(t.lpep_dropoff_datetime AS date)='2019-09-18'
+
+#Q4
+select t.trip_distance from green_tripdata t
+where CAST( t.lpep_pickup_datetime AS date) ='2019-09-18'
+order by trip_distance desc
+
+select t.trip_distance from green_tripdata t
+where CAST( t.lpep_pickup_datetime AS date) ='2019-09-16'
+order by trip_distance desc
+
+select t.trip_distance from green_tripdata t
+where CAST( t.lpep_pickup_datetime AS date) ='2019-09-26'
+order by trip_distance desc
+
+select t.trip_distance from green_tripdata t
+where CAST( t.lpep_pickup_datetime AS date) ='2019-09-21'
+order by trip_distance desc
+
+select ( t.lpep_dropoff_datetime AS date - t.lpep_pickup_datetime ) as Duration from green_tripdata t
+WHERE CAST(t.lpep_pickup_datetime AS time) = '2019-09-18' and CAST(t.lpep_dropoff_datetime AS date)='2019-09-18'
+
+
+SELECT 
+    tz.Borough, 
+    SUM(gt.total_amount) AS total_revenue
+FROM 
+    green_tripdata gt
+JOIN 
+    taxi_zone_lookup tz ON gt.PULocationID = tz.LocationID
+WHERE 
+    gt.lpep_pickup_datetime::date = '2019-09-18'
+    AND tz.Borough <> 'Unknown'
+GROUP BY 
+    tz.Borough
+ORDER BY 
+    total_revenue DESC
+LIMIT 3;
+
